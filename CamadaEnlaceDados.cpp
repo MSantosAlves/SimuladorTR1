@@ -285,8 +285,6 @@ vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCodigoHamming(vector<int>
     vector<int> indicesParidade = {0, 1, 3, 7, 15, 31};
     int countQuadroPositions = 0 ;
 
-    printVector(quadro);
-
     for(int i = 0; i < 63 ; i ++){
         if(estaIncluso(i, indicesParidade)){
             codigoHamming.push_back(-1);
@@ -295,6 +293,12 @@ vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCodigoHamming(vector<int>
             countQuadroPositions++;
         }else{
             codigoHamming.push_back(0);
+        }
+    }
+
+    for(int i = codigoHamming.size() ; i >= 0 ; i--){
+        if(codigoHamming[i] == -1){
+            codigoHamming[i] = calculaParidade(i, codigoHamming);
         }
     }
 
