@@ -109,7 +109,6 @@ vector<vector<int>> CamadaEnlanceTransmissoraEnquadramentoInsercaoDeBytes(string
 
     // Transforma cada quadro em um vetor de bits
     for(int i = 0; i < quadrosStrings.size(); i++){
-
         quadro.insert(quadro.end(), BYTE_FLAG.begin(), BYTE_FLAG.end());
 
         for (int j = 0 ; j < quadrosStrings[i].size() ; j++) {
@@ -192,9 +191,9 @@ vector<int> CamadaEnlanceReceptoraEnquadramentoContagemDeCaracteres(vector<int> 
     tamanhoQuadro = headerBitString == "00000111" ? 7 : tamanhoQuadro;
     tamanhoQuadro = headerBitString == "00001000" ? 8 : tamanhoQuadro;
 
-    //if((tamanhoQuadro - 1) * 8 != quadroDados.size()){
-    //    cout << "[Enquadramento - Cont. caracteres] => Perda de sinc. - bytes esperados/recebidos: " << tamanhoQuadro << "/" << (quadroDados.size() / 8) << endl;
-    //}
+    if((tamanhoQuadro - 1) * 8 != quadroDados.size()){
+        cout << "[Enquadramento - Cont. caracteres] => Perda de sinc." << endl;
+    }
 
     quadroDesenquadrado = quadroDados;
 
@@ -208,7 +207,7 @@ vector<int> CamadaEnlanceReceptoraEnquadramentoInsercaoDeBytes(vector<int> quadr
     vector<int> byte, byteAtual, proxByte;
     int bytesCargaUtil = cargaUtil.size() / 8;
     vector<int> bytesParaRemover;
-
+    
     //Cria um vetor de vetores, onde cada vetor interno eh um byte
     for(int i = 0 ; i < bytesCargaUtil ; i++){
         byte = {cargaUtil.begin() + i * 8, cargaUtil.begin() + (i + 1) * 8};
@@ -406,7 +405,6 @@ vector<int> CamadaEnlaceDadosReceptoraControleDeErroCodigoHamming(vector<int> qu
     if(intersec.size() > 0){
         cout << "[Correcao de Erros] => Codigo de Hamming: Ha um erro na posicao [" << intersec[0] << "] do quadro recebido. Invertendo bit..." << endl;
         quadro[intersec[0]] = !quadro[intersec[0]];
-        printVector(quadro);
     }
 
     for(int i = 0 ; i < quadro.size() ; i++){
