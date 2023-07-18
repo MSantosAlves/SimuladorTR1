@@ -8,18 +8,18 @@
 using namespace std;
 
 int TAMANHO_QUADRO = 4;
-vector<int> BYTE_FLAG = {0, 0, 0, 0, 1, 0, 0, 1};//TAB
-vector<int> BYTE_ESC  = {0, 0, 0, 1, 1, 0, 1, 1};//ESC
+int TIPO_ENQUADRAMENTO = 1;
+vector<int> BYTE_FLAG = {0, 0, 1, 1, 1, 1, 0, 0};// caracter '<'
+vector<int> BYTE_ESC  = {0, 0, 1, 1, 1, 1, 1, 0};// caracter '>'
 
 vector<vector<int>> CamadaEnlanceDadosTransmissora(string mensagem){   
     return CamadaEnlanceDadosTransmissoraEnquadramento(mensagem);
 }
 
 vector<vector<int>> CamadaEnlanceDadosTransmissoraEnquadramento(string mensagem){
-    int tipoDeEnquadramento = 1;
     vector<vector<int>> quadrosEnquadrados;
 
-    switch(tipoDeEnquadramento){
+    switch(TIPO_ENQUADRAMENTO){
         case 0:
             quadrosEnquadrados = CamadaEnlanceTransmissoraEnquadramentoContagemDeCaracteres(mensagem);
             break;
@@ -141,9 +141,8 @@ void CamadaEnlanceDadosReceptora(vector<int> quadro){
 }
 
 vector<int> CamadaEnlanceDadosReceptoraEnquadramento(vector<int> quadro){
-    int tipoDeEnquadramento = 1;
     vector<int> quadroDesenquadrado;
-    switch(tipoDeEnquadramento){
+    switch(TIPO_ENQUADRAMENTO){
         case 0:
             quadroDesenquadrado = CamadaEnlanceReceptoraEnquadramentoContagemDeCaracteres(quadro);
             break;
@@ -191,6 +190,7 @@ vector<int> CamadaEnlanceReceptoraEnquadramentoInsercaoDeBytes(vector<int> quadr
     vector<vector<int>> quadroBytes;
     vector<int> byte, byteAtual, proxByte;
     int bytesCargaUtil = cargaUtil.size() / 8;
+    vector<int> bytesParaRemover;
 
     //Cria um vetor de vetores, onde cada vetor interno eh um byte
     for(int i = 0 ; i < bytesCargaUtil ; i++){
@@ -206,9 +206,13 @@ vector<int> CamadaEnlanceReceptoraEnquadramentoInsercaoDeBytes(vector<int> quadr
         proxByte = quadroBytes[i+1];
 
         if(compareVectors(byteAtual, BYTE_ESC) && (compareVectors(proxByte, BYTE_FLAG) || compareVectors(proxByte, BYTE_ESC))){
-            quadroBytes.erase(quadroBytes.begin() + i);    
+            bytesParaRemover.push_back(i);
         }
-        
+    }
+
+    // Apaga os bytes dos indices que foram adicionados no vetor de bytes para remover
+    for(int i = 0 ; i < bytesParaRemover.size() ; i++){
+        quadroBytes.erase(quadroBytes.begin() + bytesParaRemover[i]);
     }
 
     //Copia os bytes para o vetor de quadro desenquadrado
