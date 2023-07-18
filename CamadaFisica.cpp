@@ -7,12 +7,15 @@
 
 using namespace std;
 
+int CAMADA_FISICA_TIPO_CODIFICACAO = 0;
+
 // Transmite os bits do quadro de acordo com o protocolo escolhido
-void CamadaFisicaTransmissora(vector<int> quadro){
-    int tipoDeCodificacao = 0;
+void CamadaFisicaTransmissora(vector<int> quadro, int protocoloDeCodificacao){
+    CAMADA_FISICA_TIPO_CODIFICACAO = protocoloDeCodificacao;
+    
     vector<int> fluxoBrutoDebits;
 
-    switch(tipoDeCodificacao){
+    switch(CAMADA_FISICA_TIPO_CODIFICACAO){
         case 0:
             fluxoBrutoDebits = CamadaFisicaTransmissoraCodBinaria(quadro);
             break;
@@ -79,10 +82,9 @@ vector<int> CamadaFisicaTransmissoraCodBipolar(vector<int> quadro){
 
 // Decodifica os bits do quadro de acordo com o protocolo escolhido
 void CamadaFisicaReceptora(vector<int> quadro){
-    int tipoDeCodificacao = 0;
     vector<int> fluxoBrutoDeBits;
 
-    switch(tipoDeCodificacao){
+    switch(CAMADA_FISICA_TIPO_CODIFICACAO){
         case 0:
             fluxoBrutoDeBits = CamadaFisicaReceptoraDecodBinaria(quadro);
             break;

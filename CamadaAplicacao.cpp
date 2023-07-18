@@ -9,18 +9,37 @@
 
 using namespace std;
 
+int PORCENTAGEM_DE_ERRO = 0;
+int APLICACAO_CODIFICACAO = 0;
+int APLICACAO_ENQUADRAMENTO = 0;
+int APLICACAO_CONTROLE_ERROS = 2;
+
 void AplicacaoTransmissora(){
     string mensagem;
-    // Mensagem e tipo de codificacao sao definidos pelo usuario
-    cout << "Digite uma mensagem:" << endl;
+    int protocolCod, protocoloEnquadramento, protocoloDeteccaoErros = 0, porcentagemDeErro;
+
+    cout << "Digite a mensagem a ser transmitida:" << endl;
     getline(cin, mensagem);
 
-    // cout << "Selecione um protocolo de codificacao:" << endl;
-    // cout << "0 - Binario" << endl;
-    // cout << "1 - Manchester" << endl;
-    // cout << "2 - Bipolar" << endl;
+    cout << "Selecione um protocolo de codificacao:" << endl;
+    cout << "0 - Binario" << endl;
+    cout << "1 - Manchester" << endl;
+    cout << "2 - Bipolar" << endl;
+    cin >> APLICACAO_CODIFICACAO;
 
-    // cin >> 0;
+    cout << endl << "Selecione um protocolo de enquadramento:" << endl;
+    cout << "0 - Contagem de caracteres" << endl;
+    cout << "1 - Insercao de Bytes" << endl;
+    cin >> APLICACAO_ENQUADRAMENTO;
+
+    cout << endl << "Selecione um protocolo de deteccao de erros:" << endl;
+    cout << "0 - Bit de paridade par" << endl;
+    cout << "1 - CRC" << endl;
+    cout << "2 - Codigo de Hamming" << endl;
+    cin >> APLICACAO_CONTROLE_ERROS;
+
+    cout << endl << "Define um valor base para a probabilidade de erros de transmissao:" << endl;
+    cin >> PORCENTAGEM_DE_ERRO;
 
     // Chamada a camada de aplicacao
     CamadaDeAplicacaoTransmissora(mensagem);
@@ -30,14 +49,14 @@ void CamadaDeAplicacaoTransmissora(string mensagem){
     vector<int> quadro;
     vector<vector<int>> quadros;
 
-    quadros = CamadaEnlanceDadosTransmissora(mensagem);
+    quadros = CamadaEnlanceDadosTransmissora(mensagem, APLICACAO_ENQUADRAMENTO, APLICACAO_CONTROLE_ERROS);
 
     for(int i = 0 ; i < quadros.size() ; i++){
         // Chama os protocolos de controle de erro
         quadro = CamadaEnlaceTransmissoraControleDeErro(quadros[i]);
         
         // Chama a camada fisica de transmissao com o quadro de bits
-        CamadaFisicaTransmissora(quadro);
+        CamadaFisicaTransmissora(quadro, APLICACAO_CODIFICACAO);
     }
 }
 
@@ -51,7 +70,7 @@ void MeioDeTransmissao(vector<int> fluxoBrutoDeBits){
     srand(time(0) * rand() % 1000); // "Seed" da funcao de numeros aleatorios
 
     fluxoBrutoDeBitsPontoA = fluxoBrutoDeBits;
-    porcentagemDeErros = 2;//2% de chance de erro
+    porcentagemDeErros = PORCENTAGEM_DE_ERRO;
     int bitInvertido = 0;
     bool quadroTemErro = false;
     int chanceErro = 0;

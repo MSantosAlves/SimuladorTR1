@@ -8,7 +8,7 @@
 using namespace std;
 
 int TAMANHO_QUADRO = 4;
-int TIPO_ENQUADRAMENTO = 0;
+int TIPO_ENQUADRAMENTO = 1;
 int TIPO_CONTROLE_ERRO = 2;
 vector<int> BYTE_FLAG = {0, 0, 1, 1, 1, 1, 0, 0};// caracter '<'
 vector<int> BYTE_ESC  = {0, 0, 1, 1, 1, 1, 1, 0};// caracter '>'
@@ -25,7 +25,9 @@ vector<int> P6 = { 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 4
 vector<int> INDICES_PARIDADE = {0, 1, 3, 7, 15, 31};
 
 
-vector<vector<int>> CamadaEnlanceDadosTransmissora(string mensagem){   
+vector<vector<int>> CamadaEnlanceDadosTransmissora(string mensagem, int tipoDeEnquadramento, int tipoDeControleDeErro){   
+    TIPO_ENQUADRAMENTO = tipoDeEnquadramento;
+    TIPO_CONTROLE_ERRO = tipoDeControleDeErro;
     return CamadaEnlanceDadosTransmissoraEnquadramento(mensagem);
 }
 
@@ -402,7 +404,7 @@ vector<int> CamadaEnlaceDadosReceptoraControleDeErroCodigoHamming(vector<int> qu
     }
 
     if(intersec.size() > 0){
-        cout << "[Correcao de Erros] => Codigo de Hamming: Ha um erro na posicao " << intersec[0] << " do quadro recebido. Invertendo bit..." << endl;
+        cout << "[Correcao de Erros] => Codigo de Hamming: Ha um erro na posicao [" << intersec[0] << "] do quadro recebido. Invertendo bit..." << endl;
         quadro[intersec[0]] = !quadro[intersec[0]];
         printVector(quadro);
     }
