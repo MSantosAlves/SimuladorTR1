@@ -384,20 +384,11 @@ vector<int> CamadaEnlaceDadosReceptoraControleDeErroCodigoHamming(vector<int> qu
             if(paridadeEsperada != quadro[i]){
                 posicoesComErroHamming.push_back(i);
             }
-        }else {
-            quadroSemHamming.push_back(quadro[i]);
         }
-    }
-
-    if(quadroSemHamming.size() > (TAMANHO_QUADRO + 1) * 8){
-        quadroSemHamming.assign(quadroSemHamming.begin(), quadroSemHamming.begin() + (TAMANHO_QUADRO + 1) * 8);
     }
 
     vector<vector<int>> posicoesCandidatas;
     vector<int> intersec;
-
-   
-
 
     for(int i = 0 ; i < posicoesComErroHamming.size() ; i++){
         posicoesCandidatas.push_back(retornaPosicoesPorIndice(posicoesComErroHamming[i]));
@@ -411,9 +402,16 @@ vector<int> CamadaEnlaceDadosReceptoraControleDeErroCodigoHamming(vector<int> qu
     }
 
     if(intersec.size() > 0){
-        cout << "[Deteccao de Erros] => Codigo de Hamming: Ha um erro na posicao " << intersec[0] << endl;
+        cout << "[Correcao de Erros] => Codigo de Hamming: Ha um erro na posicao " << intersec[0] << " do quadro recebido. Invertendo bit..." << endl;
+        quadro[intersec[0]] = !quadro[intersec[0]];
+        printVector(quadro);
     }
 
+    for(int i = 0 ; i < quadro.size() ; i++){
+        if(!estaIncluso(i, INDICES_PARIDADE)){
+            quadroSemHamming.push_back(quadro[i]);
+        }
+    }
 
     return quadroSemHamming;
 }
