@@ -23,4 +23,8 @@ bool compareVectors(vector<int> a, vector<int> b);
 
 void printVector(vector<int> a);
 
+bool estaIncluso(int a, vector<int> b);
+
+int calculaParidade(int idx, vector<int> b);
+
 #endif

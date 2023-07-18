@@ -9,11 +9,19 @@ using namespace std;
 
 int TAMANHO_QUADRO = 4 ;
 int TIPO_ENQUADRAMENTO = 0;
-int TIPO_CONTROLE_ERRO = 1;
+int TIPO_CONTROLE_ERRO = 2;
 vector<int> BYTE_FLAG = {0, 0, 1, 1, 1, 1, 0, 0};// caracter '<'
 vector<int> BYTE_ESC  = {0, 0, 1, 1, 1, 1, 1, 0};// caracter '>'
 vector<int> CRC_32_802 = {0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1}; //0x04C11DB7
 vector<int> CRC_32_802_TIMES_0 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+// Utilizado no Codigo de Hamming(63, 57)
+vector<int> P1 = { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62};
+vector<int> P2 = { 1, 2, 5, 6, 9, 10, 13, 14, 17, 18, 21, 22, 25, 26, 29, 30, 33, 34, 37, 38, 41, 42, 45, 46, 49, 50, 53, 54, 57, 58, 61, 62};
+vector<int> P3 = { 3, 4, 5, 6, 11, 12, 13, 14, 19, 20, 21, 22, 27, 28, 29, 30, 35, 36, 37, 38, 43, 44, 45, 46, 51, 52, 53, 54, 59, 60, 61, 62};
+vector<int> P4 = { 7, 8, 9, 10, 11, 12, 13, 14, 23, 24, 25, 26, 27, 28, 29, 30, 39, 40, 41, 42, 43, 44, 45, 46, 55, 56, 57, 58, 59, 60, 61, 62};
+vector<int> P5 = { 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62};
+vector<int> P6 = { 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62};
 
 vector<vector<int>> CamadaEnlanceDadosTransmissora(string mensagem){   
     return CamadaEnlanceDadosTransmissoraEnquadramento(mensagem);
@@ -232,6 +240,9 @@ vector<int> CamadaEnlaceTransmissoraControleDeErro(vector<int> quadro){
         case 1:
             quadroComControleDeErro = CamadaEnlaceDadosTransmissoraControleDeErroCRC(quadro);
             break;
+        case 2:
+            quadroComControleDeErro = CamadaEnlaceDadosTransmissoraControleDeErroCodigoHamming(quadro);
+            break;
     }
     return quadroComControleDeErro;
 };
@@ -267,6 +278,29 @@ vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCRC(vector<int> quadro){
     return quadro;
 };
 
+// Implementacao para Hamming(63, 57) (6 bits de paridade)
+// Como os quadros possuem menos de 57 bits, adiciona-se 0's ao fim de cada quadro para completar o blocos de 57 bits
+vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCodigoHamming(vector<int> quadro){
+    vector<int> codigoHamming;
+    vector<int> indicesParidade = {0, 1, 3, 7, 15, 31};
+    int countQuadroPositions = 0 ;
+
+    printVector(quadro);
+
+    for(int i = 0; i < 63 ; i ++){
+        if(estaIncluso(i, indicesParidade)){
+            codigoHamming.push_back(-1);
+        }else if(countQuadroPositions < quadro.size()){
+            codigoHamming.push_back(quadro[countQuadroPositions]);
+            countQuadroPositions++;
+        }else{
+            codigoHamming.push_back(0);
+        }
+    }
+
+    return quadro;
+}
+
 vector<int> CamadaEnlaceReceptoraControleDeErro(vector<int> quadro){
     vector<int> quadroSemControleDeErro;
     
@@ -277,6 +311,9 @@ vector<int> CamadaEnlaceReceptoraControleDeErro(vector<int> quadro){
 
         case 1:
             quadroSemControleDeErro = CamadaEnlaceDadosReceptoraControleDeErroCRC(quadro);
+            break;
+        case 2:
+            quadroSemControleDeErro = CamadaEnlaceDadosReceptoraControleDeErroCodigoHamming(quadro);
             break;
     }
     return quadroSemControleDeErro;
@@ -322,6 +359,11 @@ vector<int> CamadaEnlaceDadosReceptoraControleDeErroCRC(vector<int> quadro){
     
     return quadroSemCRC;
 };
+
+vector<int> CamadaEnlaceDadosReceptoraControleDeErroCodigoHamming(vector<int> quadro){
+    cout << "[DeteccaoDeErros] => Codigo de Hamming nao implementado." << endl;
+    return quadro;
+}
 
 
 //Funcoes auxiliares
@@ -388,4 +430,36 @@ vector<int> CalculaCRC(vector<int> quadro){
     }
 
     return resultadoParcial;
+}
+
+bool estaIncluso(int a, vector<int> b){
+    bool isIncluded = false;
+    for(int i = 0 ; i < b.size() ; i++){
+        if(a == b[i]){
+            isIncluded = true;
+        }
+    }
+
+    return isIncluded;
+}
+
+int calculaParidade(int idx, vector<int> codigoHamming){
+    int paridade = 0;
+    vector<int> posicoes;
+
+    posicoes = P1;
+    posicoes = idx == 1  ? P2 : posicoes;
+    posicoes = idx == 3  ? P3 : posicoes;
+    posicoes = idx == 7  ? P4 : posicoes;
+    posicoes = idx == 15 ? P5 : posicoes;
+    posicoes = idx == 31 ? P6 : posicoes;
+    
+
+    for(int i = codigoHamming.size() - 1 ; i > idx ; i--){
+        if(estaIncluso(i, posicoes)){
+            paridade += codigoHamming[i];
+        }
+    }
+
+    return paridade % 2 == 0 ? 0 : 1;
 }

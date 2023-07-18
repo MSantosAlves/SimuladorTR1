@@ -31,10 +31,14 @@ vector<int> CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(vector<int
 
 vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCRC(vector<int> quadro);
 
+vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCodigoHamming(vector<int> quadro);
+
 vector<int> CalculaCRC(vector<int> quadro);
 
 vector<int> CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar(vector<int> quadro);
 
 vector<int> CamadaEnlaceDadosReceptoraControleDeErroCRC(vector<int> quadro);
+
+vector<int> CamadaEnlaceDadosReceptoraControleDeErroCodigoHamming(vector<int> quadro);
 
 #endif
