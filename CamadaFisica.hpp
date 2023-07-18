@@ -7,10 +7,6 @@
 
 using namespace std;
 
-void AplicacaoTransmissora(void);
-
-void CamadaDeAplicacaoTransmissora(string mensagem);
-
 void CamadaFisicaTransmissora(vector<int> quadro);
 
 vector<int> CamadaFisicaTransmissoraCodBinaria(vector<int> quadro);
@@ -18,12 +14,6 @@ vector<int> CamadaFisicaTransmissoraCodBinaria(vector<int> quadro);
 vector<int> CamadaFisicaTransmissoraCodManchester(vector<int> quadro);
 
 vector<int> CamadaFisicaTransmissoraCodBipolar(vector<int> quadro);
-
-void MeioDeTransmissao(vector<int> fluxoBrutoDeBits);
-
-void CamadaDeAplicacaoReceptora(vector<int> quadro);
-
-void AplicacaoReceptora(string mensagem);
 
 void CamadaFisicaReceptora(vector<int> quadro);
 
