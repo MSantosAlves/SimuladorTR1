@@ -7,7 +7,7 @@
 
 using namespace std;
 
-int TAMANHO_QUADRO = 4 ;
+int TAMANHO_QUADRO = 4;
 int TIPO_ENQUADRAMENTO = 0;
 int TIPO_CONTROLE_ERRO = 2;
 vector<int> BYTE_FLAG = {0, 0, 1, 1, 1, 1, 0, 0};// caracter '<'
@@ -22,6 +22,8 @@ vector<int> P3 = { 3, 4, 5, 6, 11, 12, 13, 14, 19, 20, 21, 22, 27, 28, 29, 30, 3
 vector<int> P4 = { 7, 8, 9, 10, 11, 12, 13, 14, 23, 24, 25, 26, 27, 28, 29, 30, 39, 40, 41, 42, 43, 44, 45, 46, 55, 56, 57, 58, 59, 60, 61, 62};
 vector<int> P5 = { 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62};
 vector<int> P6 = { 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62};
+vector<int> INDICES_PARIDADE = {0, 1, 3, 7, 15, 31};
+
 
 vector<vector<int>> CamadaEnlanceDadosTransmissora(string mensagem){   
     return CamadaEnlanceDadosTransmissoraEnquadramento(mensagem);
@@ -49,13 +51,14 @@ vector<vector<int>> CamadaEnlanceTransmissoraEnquadramentoContagemDeCaracteres(s
     string quadroString = "";
     int counter = 0;
     int tamanhoMensagem = mensagem.size();
+    int tamanhoQuadro = 0;
 
     while (counter < tamanhoMensagem) {
-        TAMANHO_QUADRO = min(TAMANHO_QUADRO, tamanhoMensagem - counter);
-        quadroString = mensagem.substr(counter, TAMANHO_QUADRO);
+        tamanhoQuadro = min(TAMANHO_QUADRO, tamanhoMensagem - counter);
+        quadroString = mensagem.substr(counter, tamanhoQuadro);
         quadroString = to_string(quadroString.size() + 1) + quadroString;
         quadrosStrings.push_back(quadroString);
-        counter += TAMANHO_QUADRO;
+        counter += tamanhoQuadro;
     }
 
     // Transforma cada quadro em um vetor de bits
@@ -88,6 +91,7 @@ vector<vector<int>> CamadaEnlanceTransmissoraEnquadramentoInsercaoDeBytes(string
     vector<string> quadrosStrings;
     string quadroString = "";
     vector<int> charByte;
+    int tamanhoQuadro = 0;
 
     int tamanhoMensagem = mensagem.size();
     bool isFlag = true;
@@ -95,10 +99,10 @@ vector<vector<int>> CamadaEnlanceTransmissoraEnquadramentoInsercaoDeBytes(string
     int counter = 0;
 
     while (counter < tamanhoMensagem) {
-        TAMANHO_QUADRO = min(TAMANHO_QUADRO, tamanhoMensagem - counter);
-        quadroString = mensagem.substr(counter, TAMANHO_QUADRO);
+        tamanhoQuadro = min(TAMANHO_QUADRO, tamanhoMensagem - counter);
+        quadroString = mensagem.substr(counter, tamanhoQuadro);
         quadrosStrings.push_back(quadroString);
-        counter += TAMANHO_QUADRO;
+        counter += tamanhoQuadro;
     }
 
     // Transforma cada quadro em um vetor de bits
@@ -167,23 +171,28 @@ vector<int> CamadaEnlanceDadosReceptoraEnquadramento(vector<int> quadro){
 
 vector<int> CamadaEnlanceReceptoraEnquadramentoContagemDeCaracteres(vector<int> quadro){
     vector<int> quadroDesenquadrado;
-    vector<int> tamanhoQuadroEmBits = {quadro.begin(), quadro.begin() + 8};
+    vector<int> header = {quadro.begin(), quadro.begin() + 8};
     vector<int> quadroDados = {quadro.begin() + 8, quadro.end()};
+    int tamanhoQuadro = 0;
+    string headerBitString = "";
     
-    int TAMANHO_QUADRO = 0;
-    int qtdeDeBytesRecebida = quadroDados.size() / 8;
-
     for(int i = 7; i >= 0; i--){
-        if(tamanhoQuadroEmBits[7 - i] == 1){
-            TAMANHO_QUADRO += int(pow(double(2), double(i)));
-        }
+        headerBitString += to_string(header[7 - i]);
     }
 
-    int qtdeBytesEsperada = (TAMANHO_QUADRO - 1);
+    tamanhoQuadro = 0;
+    tamanhoQuadro = headerBitString == "00000001" ? 1 : tamanhoQuadro;
+    tamanhoQuadro = headerBitString == "00000010" ? 2 : tamanhoQuadro;
+    tamanhoQuadro = headerBitString == "00000011" ? 3 : tamanhoQuadro;
+    tamanhoQuadro = headerBitString == "00000100" ? 4 : tamanhoQuadro;
+    tamanhoQuadro = headerBitString == "00000101" ? 5 : tamanhoQuadro;
+    tamanhoQuadro = headerBitString == "00000110" ? 6 : tamanhoQuadro;
+    tamanhoQuadro = headerBitString == "00000111" ? 7 : tamanhoQuadro;
+    tamanhoQuadro = headerBitString == "00001000" ? 8 : tamanhoQuadro;
 
-    if(qtdeBytesEsperada != qtdeDeBytesRecebida){
-        cout << "[Enquadramento - Cont. caracteres] => Perda de sinc. - bytes esperados/recebidos: " << qtdeBytesEsperada << "/" << qtdeDeBytesRecebida << endl;
-    }
+    //if((tamanhoQuadro - 1) * 8 != quadroDados.size()){
+    //    cout << "[Enquadramento - Cont. caracteres] => Perda de sinc. - bytes esperados/recebidos: " << tamanhoQuadro << "/" << (quadroDados.size() / 8) << endl;
+    //}
 
     quadroDesenquadrado = quadroDados;
 
@@ -282,11 +291,10 @@ vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCRC(vector<int> quadro){
 // Como os quadros possuem menos de 57 bits, adiciona-se 0's ao fim de cada quadro para completar o blocos de 57 bits
 vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCodigoHamming(vector<int> quadro){
     vector<int> codigoHamming;
-    vector<int> indicesParidade = {0, 1, 3, 7, 15, 31};
     int countQuadroPositions = 0 ;
 
     for(int i = 0; i < 63 ; i ++){
-        if(estaIncluso(i, indicesParidade)){
+        if(estaIncluso(i, INDICES_PARIDADE)){
             codigoHamming.push_back(-1);
         }else if(countQuadroPositions < quadro.size()){
             codigoHamming.push_back(quadro[countQuadroPositions]);
@@ -302,7 +310,7 @@ vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCodigoHamming(vector<int>
         }
     }
 
-    return quadro;
+    return codigoHamming;
 }
 
 vector<int> CamadaEnlaceReceptoraControleDeErro(vector<int> quadro){
@@ -365,8 +373,49 @@ vector<int> CamadaEnlaceDadosReceptoraControleDeErroCRC(vector<int> quadro){
 };
 
 vector<int> CamadaEnlaceDadosReceptoraControleDeErroCodigoHamming(vector<int> quadro){
-    cout << "[DeteccaoDeErros] => Codigo de Hamming nao implementado." << endl;
-    return quadro;
+    vector<int> quadroSemHamming;
+    vector<int> posicoesComErroHamming;
+    int paridadeEsperada = 0;
+
+    for(int i = 0 ; i < quadro.size() ; i++){
+        if(estaIncluso(i, INDICES_PARIDADE)){
+            paridadeEsperada = calculaParidade(i, quadro);
+
+            if(paridadeEsperada != quadro[i]){
+                posicoesComErroHamming.push_back(i);
+            }
+        }else {
+            quadroSemHamming.push_back(quadro[i]);
+        }
+    }
+
+    if(quadroSemHamming.size() > (TAMANHO_QUADRO + 1) * 8){
+        quadroSemHamming.assign(quadroSemHamming.begin(), quadroSemHamming.begin() + (TAMANHO_QUADRO + 1) * 8);
+    }
+
+    vector<vector<int>> posicoesCandidatas;
+    vector<int> intersec;
+
+   
+
+
+    for(int i = 0 ; i < posicoesComErroHamming.size() ; i++){
+        posicoesCandidatas.push_back(retornaPosicoesPorIndice(posicoesComErroHamming[i]));
+    }
+
+    if(posicoesCandidatas.size() > 0){
+        intersec = posicoesCandidatas[0];
+        for(int i = 0 ; i < posicoesCandidatas.size(); i++){
+            intersec = interseccao(intersec, posicoesCandidatas[i]);
+        }
+    }
+
+    if(intersec.size() > 0){
+        cout << "[Deteccao de Erros] => Codigo de Hamming: Ha um erro na posicao " << intersec[0] << endl;
+    }
+
+
+    return quadroSemHamming;
 }
 
 
@@ -385,7 +434,7 @@ bool compareVectors(vector<int> v1, vector<int> v2){
 
 void printVector(vector<int> v){
     for(int i = 0 ; i < v.size() ; i++){
-        cout << v[i];
+        cout << v[i] << " ";
     }
     cout << endl;
 }
@@ -449,15 +498,7 @@ bool estaIncluso(int a, vector<int> b){
 
 int calculaParidade(int idx, vector<int> codigoHamming){
     int paridade = 0;
-    vector<int> posicoes;
-
-    posicoes = P1;
-    posicoes = idx == 1  ? P2 : posicoes;
-    posicoes = idx == 3  ? P3 : posicoes;
-    posicoes = idx == 7  ? P4 : posicoes;
-    posicoes = idx == 15 ? P5 : posicoes;
-    posicoes = idx == 31 ? P6 : posicoes;
-    
+    vector<int> posicoes = retornaPosicoesPorIndice(idx);
 
     for(int i = codigoHamming.size() - 1 ; i > idx ; i--){
         if(estaIncluso(i, posicoes)){
@@ -466,4 +507,30 @@ int calculaParidade(int idx, vector<int> codigoHamming){
     }
 
     return paridade % 2 == 0 ? 0 : 1;
+}
+
+vector<int> retornaPosicoesPorIndice(int idx){
+    vector<int> posicoes;
+
+    posicoes = P1;
+    posicoes = idx == 1  ? P2 : posicoes;
+    posicoes = idx == 3  ? P3 : posicoes;
+    posicoes = idx == 7  ? P4 : posicoes;
+    posicoes = idx == 15 ? P5 : posicoes;
+    posicoes = idx == 31 ? P6 : posicoes;
+
+    return posicoes;
+}
+
+vector<int> interseccao(vector<int> v1, vector<int> v2){
+    vector<int> interseccao;
+    for(int i = 0 ; i < v1.size() ; i++){
+        for(int j = 0 ; j < v2.size() ; j++){
+            if(v1[i] == v2[j]){
+                interseccao.push_back(v1[i]);
+            }
+        }
+    }
+
+    return interseccao;
 }

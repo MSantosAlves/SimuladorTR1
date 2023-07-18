@@ -27,4 +27,8 @@ bool estaIncluso(int a, vector<int> b);
 
 int calculaParidade(int idx, vector<int> b);
 
+vector<int> interseccao(vector<int> v1, vector<int> v2);
+
+vector<int> retornaPosicoesPorIndice(int idx);
+
 #endif
