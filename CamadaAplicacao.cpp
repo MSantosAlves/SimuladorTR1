@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <bitset>
+#include <ctime>
 
 using namespace std;
 
@@ -47,15 +48,20 @@ void MeioDeTransmissao(vector<int> fluxoBrutoDeBits){
     int erro, porcentagemDeErros;
     vector<int> fluxoBrutoDeBitsPontoA, fluxoBrutoDeBitsPontoB;
     int counter = 0;
+    srand(time(0) * rand() % 1000); // "Seed" da funcao de numeros aleatorios
 
     fluxoBrutoDeBitsPontoA = fluxoBrutoDeBits;
-    porcentagemDeErros = 20;//20% de chance de erro
+    porcentagemDeErros = 2;//2% de chance de erro
     int bitInvertido = 0;
     bool quadroTemErro = false;
+    int chanceErro = 0;
+    int erroIndice = 0;
 
     while(fluxoBrutoDeBitsPontoB.size() != fluxoBrutoDeBitsPontoA.size()){
         // Forca 1 erro por quadro
-        if((counter > 8 && counter < fluxoBrutoDeBitsPontoA.size() - 8) && !quadroTemErro && ((rand() % 100) > (100 - porcentagemDeErros))){
+        chanceErro = (rand() % 100);
+        if(!quadroTemErro && (chanceErro > (100 - porcentagemDeErros))){
+            erroIndice = counter;
             bitInvertido = fluxoBrutoDeBitsPontoA[counter] == 0 ? 1 : 0;
             fluxoBrutoDeBitsPontoB.push_back(bitInvertido);
             quadroTemErro = true;
@@ -66,23 +72,32 @@ void MeioDeTransmissao(vector<int> fluxoBrutoDeBits){
     }
 
     if(quadroTemErro){
-        cout << "-------------------------------------------------------" << endl;
-        cout << "Fluxo de Bits original:" << endl;
+        cout << "---------------------------------------------------------------------------------------------------------------------------------------------" << endl;
+        cout << "[MeioDeTansmissao] => Fluxo de Bits original/com erro:" << endl;
         
         for (int i = 0; i < fluxoBrutoDeBitsPontoA.size(); i++)
         {
-            cout << fluxoBrutoDeBitsPontoA[i];
+            cout << fluxoBrutoDeBitsPontoA[i] << " ";
         }
 
-        cout << endl << "Fluxo de Bits com erro:" << endl;
+        cout << endl;
 
         for (int i = 0; i < fluxoBrutoDeBitsPontoB.size(); i++)
         {
-            cout << fluxoBrutoDeBitsPontoB[i];
+            cout << fluxoBrutoDeBitsPontoB[i] << " ";
         }
 
-        cout << endl <<  "-------------------------------------------------------" << endl;
-        
+        cout << endl;
+
+        for(int i = 0; i < fluxoBrutoDeBitsPontoB.size(); i++){
+            if(i == erroIndice){
+                cout << "^" << " ";
+            }else{
+                cout << "  ";
+            }
+        }
+
+        cout << endl << "---------------------------------------------------------------------------------------------------------------------------------------------" << endl;
     }
 
     CamadaFisicaReceptora(fluxoBrutoDeBitsPontoB);
@@ -90,12 +105,6 @@ void MeioDeTransmissao(vector<int> fluxoBrutoDeBits){
 
 // Recebe os bits decodificados e os transforma em caracteres
 void CamadaDeAplicacaoReceptora(vector<int> quadro){
-    for(int i = 0 ; i < quadro.size() ; i++){
-        cout << quadro[i];
-    }
-
-    cout << endl;
-
     string mensagem;
     int tamanhoByte = 8;
     int numeroDeCaracteres = quadro.size() / tamanhoByte;
@@ -128,5 +137,5 @@ void CamadaDeAplicacaoReceptora(vector<int> quadro){
 
 // Retorna a mensagem decodificada
 void AplicacaoReceptora(string mensagem){
-    cout << "Quadro decodificado: '" << mensagem << "'" << endl;
+    cout << "Mensagem recebida (quadro desenquadrado/decodificado): '" << mensagem << "'" << endl;
 }

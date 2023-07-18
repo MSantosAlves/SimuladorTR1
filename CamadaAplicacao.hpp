@@ -21,4 +21,6 @@ void MeioDeTransmissao(vector<int> fluxoBrutoDeBits);
 
 bool compareVectors(vector<int> a, vector<int> b);
 
+void printVector(vector<int> a);
+
 #endif

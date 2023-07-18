@@ -7,11 +7,13 @@
 
 using namespace std;
 
-int TAMANHO_QUADRO = 4;
-int TIPO_ENQUADRAMENTO = 1;
-int TIPO_CONTROLE_ERRO = 0;
+int TAMANHO_QUADRO = 4 ;
+int TIPO_ENQUADRAMENTO = 0;
+int TIPO_CONTROLE_ERRO = 1;
 vector<int> BYTE_FLAG = {0, 0, 1, 1, 1, 1, 0, 0};// caracter '<'
 vector<int> BYTE_ESC  = {0, 0, 1, 1, 1, 1, 1, 0};// caracter '>'
+vector<int> CRC_32_802 = {0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1}; //0x04C11DB7
+vector<int> CRC_32_802_TIMES_0 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 vector<vector<int>> CamadaEnlanceDadosTransmissora(string mensagem){   
     return CamadaEnlanceDadosTransmissoraEnquadramento(mensagem);
@@ -161,7 +163,7 @@ vector<int> CamadaEnlanceReceptoraEnquadramentoContagemDeCaracteres(vector<int> 
     vector<int> quadroDados = {quadro.begin() + 8, quadro.end()};
     
     int TAMANHO_QUADRO = 0;
-    int qtdeDeBitsRecebida = quadroDados.size();
+    int qtdeDeBytesRecebida = quadroDados.size() / 8;
 
     for(int i = 7; i >= 0; i--){
         if(tamanhoQuadroEmBits[7 - i] == 1){
@@ -169,15 +171,10 @@ vector<int> CamadaEnlanceReceptoraEnquadramentoContagemDeCaracteres(vector<int> 
         }
     }
 
-    int qtdeBitsEsperada = (TAMANHO_QUADRO - 1) * 8;
+    int qtdeBytesEsperada = (TAMANHO_QUADRO - 1);
 
-    if(qtdeBitsEsperada != qtdeDeBitsRecebida){
-        cout << "Erro na transmissao: Numero de bits esperado/recebido: " << qtdeBitsEsperada << "/" << qtdeDeBitsRecebida << endl;
-        cout << "Header: ";
-        for(int i = 0; i < tamanhoQuadroEmBits.size(); i++){
-            cout << tamanhoQuadroEmBits[i];
-        }
-        cout << " => " << TAMANHO_QUADRO << endl;
+    if(qtdeBytesEsperada != qtdeDeBytesRecebida){
+        cout << "[Enquadramento - Cont. caracteres] => Perda de sinc. - bytes esperados/recebidos: " << qtdeBytesEsperada << "/" << qtdeDeBytesRecebida << endl;
     }
 
     quadroDesenquadrado = quadroDados;
@@ -242,7 +239,7 @@ vector<int> CamadaEnlaceTransmissoraControleDeErro(vector<int> quadro){
 vector<int> CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(vector<int> quadro){
     int count = 0;
 
-    for (int i = 0; i < count; i++)
+    for (int i = 0; i < quadro.size(); i++)
     {
         if (quadro[i] == 1)
         {
@@ -263,6 +260,10 @@ vector<int> CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(vector<int
 };
 
 vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCRC(vector<int> quadro){
+    vector<int> CRC = CalculaCRC(quadro);
+
+    quadro.insert(quadro.end(), CRC.begin(), CRC.end());
+
     return quadro;
 };
 
@@ -295,14 +296,31 @@ vector<int> CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar(vector<int> q
     int paridadeCalculada = count % 2;
 
      if (paridadeRecebida != paridadeCalculada){
-         cout << "Erro de paridade." << endl;
+        cout << "[DeteccaoDeErros] => Erro de paridade." << endl;
      }
 
     return quadroSemParidade;
 };
 
 vector<int> CamadaEnlaceDadosReceptoraControleDeErroCRC(vector<int> quadro){
-    return quadro;
+    bool crcError = false;
+    vector<int> quadroSemCRC;
+    quadroSemCRC.assign(quadro.begin(), quadro.end() - CRC_32_802.size() + 1);
+
+    vector<int> CRCEsperado = CalculaCRC(quadroSemCRC);
+    vector<int> CRCRecebido = {quadro.end() - CRC_32_802.size() + 1, quadro.end()};
+
+    for(int i = 0 ; i < CRCRecebido.size() ; i++){
+        if(CRCRecebido[i] != CRCEsperado[i]){
+            crcError = true;
+        }
+    }
+
+    if(crcError){
+        cout << "[DeteccaoDeErros] => Erro de CRC." << endl;
+    }
+    
+    return quadroSemCRC;
 };
 
 
@@ -317,4 +335,57 @@ bool compareVectors(vector<int> v1, vector<int> v2){
     }
 
     return isEqual;
+}
+
+void printVector(vector<int> v){
+    for(int i = 0 ; i < v.size() ; i++){
+        cout << v[i];
+    }
+    cout << endl;
+}
+
+vector<int> operacaoXOR(vector<int> v1, vector<int> v2){
+    vector<int> resultadoXOR;
+    int xorBit = 0;
+
+    for(int i = 0 ; i < v1.size() ; i++){
+        xorBit = v1[i] ^ v2[i];
+        resultadoXOR.push_back(xorBit);
+    }
+
+    return resultadoXOR;
+}
+
+vector<int> CalculaCRC(vector<int> quadro){
+    vector<int> quadroComCRCComplemento;
+    vector<int> dividendo;
+    vector<int> divisor;
+    vector<int> resultadoParcial;
+
+    quadroComCRCComplemento.assign(quadro.begin(), quadro.end());
+
+    // Adiciona n - 1 (31 bits) 0's ao final do quadro 
+    for(int i = 0 ; i < CRC_32_802.size() -1 ; i++){
+        quadroComCRCComplemento.push_back(0);
+    }
+
+    for(int i = CRC_32_802.size() ; i < quadroComCRCComplemento.size() + 1; i++){
+
+        if(i == CRC_32_802.size()){
+            dividendo.assign(quadroComCRCComplemento.begin(), quadroComCRCComplemento.begin() + CRC_32_802.size());
+        }else{
+            dividendo.assign(resultadoParcial.begin(), resultadoParcial.end());
+            dividendo.push_back(0); // Adiciona um bit 0 ao fim do resultado parcial
+        }
+
+        if(resultadoParcial.empty() || resultadoParcial[0] == 1){
+            divisor = CRC_32_802;
+        }else{
+            divisor = CRC_32_802_TIMES_0;
+        }
+        resultadoParcial = operacaoXOR(dividendo, divisor);
+        resultadoParcial.assign(resultadoParcial.begin() + 1, resultadoParcial.end());
+    }
+
+    return resultadoParcial;
 }
