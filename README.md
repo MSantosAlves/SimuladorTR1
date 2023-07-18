@@ -6,7 +6,7 @@
 - João Marcos Melo Monteiro - 130143031
 - Matheus Santos Alves - 180025163
 
-Versão do compiladorÇ
+Versão do compilador:
 
 gcc version 9.4.0 (Ubuntu 9.4.0-1ubuntu1~20.04.1) 
 
