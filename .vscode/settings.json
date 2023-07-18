@@ -9,6 +9,7 @@
         "vector": "cpp",
         "bitset": "cpp",
         "array": "cpp",
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "algorithm": "cpp"
     }
 }

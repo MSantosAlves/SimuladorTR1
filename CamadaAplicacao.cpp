@@ -32,8 +32,11 @@ void CamadaDeAplicacaoTransmissora(string mensagem){
     quadros = CamadaEnlanceDadosTransmissora(mensagem);
 
     for(int i = 0 ; i < quadros.size() ; i++){
+        // Chama os protocolos de controle de erro
+        quadro = CamadaEnlaceTransmissoraControleDeErro(quadros[i]);
+        
         // Chama a camada fisica de transmissao com o quadro de bits
-        CamadaFisicaTransmissora(quadros[i]);
+        CamadaFisicaTransmissora(quadro);
     }
 }
 
@@ -46,21 +49,40 @@ void MeioDeTransmissao(vector<int> fluxoBrutoDeBits){
     int counter = 0;
 
     fluxoBrutoDeBitsPontoA = fluxoBrutoDeBits;
-    porcentagemDeErros = -2;//2% de chance de erro
+    porcentagemDeErros = 20;//20% de chance de erro
     int bitInvertido = 0;
     bool quadroTemErro = false;
 
     while(fluxoBrutoDeBitsPontoB.size() != fluxoBrutoDeBitsPontoA.size()){
         // Forca 1 erro por quadro
-        if(!quadroTemErro && ((rand() % 100) > (100 - porcentagemDeErros))){
+        if((counter > 8 && counter < fluxoBrutoDeBitsPontoA.size() - 8) && !quadroTemErro && ((rand() % 100) > (100 - porcentagemDeErros))){
             bitInvertido = fluxoBrutoDeBitsPontoA[counter] == 0 ? 1 : 0;
             fluxoBrutoDeBitsPontoB.push_back(bitInvertido);
             quadroTemErro = true;
-            cout << "Tem erro" << endl;
         }else{
             fluxoBrutoDeBitsPontoB.push_back(fluxoBrutoDeBitsPontoA[counter]);
-            counter++;
         }
+        counter++;
+    }
+
+    if(quadroTemErro){
+        cout << "-------------------------------------------------------" << endl;
+        cout << "Fluxo de Bits original:" << endl;
+        
+        for (int i = 0; i < fluxoBrutoDeBitsPontoA.size(); i++)
+        {
+            cout << fluxoBrutoDeBitsPontoA[i];
+        }
+
+        cout << endl << "Fluxo de Bits com erro:" << endl;
+
+        for (int i = 0; i < fluxoBrutoDeBitsPontoB.size(); i++)
+        {
+            cout << fluxoBrutoDeBitsPontoB[i];
+        }
+
+        cout << endl <<  "-------------------------------------------------------" << endl;
+        
     }
 
     CamadaFisicaReceptora(fluxoBrutoDeBitsPontoB);

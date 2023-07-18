@@ -9,6 +9,7 @@ using namespace std;
 
 int TAMANHO_QUADRO = 4;
 int TIPO_ENQUADRAMENTO = 1;
+int TIPO_CONTROLE_ERRO = 0;
 vector<int> BYTE_FLAG = {0, 0, 1, 1, 1, 1, 0, 0};// caracter '<'
 vector<int> BYTE_ESC  = {0, 0, 1, 1, 1, 1, 1, 0};// caracter '>'
 
@@ -222,6 +223,90 @@ vector<int> CamadaEnlanceReceptoraEnquadramentoInsercaoDeBytes(vector<int> quadr
 
     return quadroDesenquadrado;
 }
+
+vector<int> CamadaEnlaceTransmissoraControleDeErro(vector<int> quadro){
+    vector<int> quadroComControleDeErro;
+    
+    switch (TIPO_CONTROLE_ERRO){
+        case 0:
+            quadroComControleDeErro = CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(quadro);
+            break;
+
+        case 1:
+            quadroComControleDeErro = CamadaEnlaceDadosTransmissoraControleDeErroCRC(quadro);
+            break;
+    }
+    return quadroComControleDeErro;
+};
+
+vector<int> CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(vector<int> quadro){
+    int count = 0;
+
+    for (int i = 0; i < count; i++)
+    {
+        if (quadro[i] == 1)
+        {
+            count++;
+        }
+    }
+
+    if (count % 2 == 0)
+    {
+        quadro.push_back(0);
+    }
+    else
+    {
+        quadro.push_back(1);
+    }
+    
+    return quadro;
+};
+
+vector<int> CamadaEnlaceDadosTransmissoraControleDeErroCRC(vector<int> quadro){
+    return quadro;
+};
+
+vector<int> CamadaEnlaceReceptoraControleDeErro(vector<int> quadro){
+    vector<int> quadroSemControleDeErro;
+    
+    switch (TIPO_CONTROLE_ERRO){
+        case 0:
+            quadroSemControleDeErro = CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar(quadro);
+            break;
+
+        case 1:
+            quadroSemControleDeErro = CamadaEnlaceDadosReceptoraControleDeErroCRC(quadro);
+            break;
+    }
+    return quadroSemControleDeErro;
+}
+
+vector<int> CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar(vector<int> quadro){
+    int paridadeRecebida = quadro[quadro.size() - 1];
+    int count = 0;
+    vector<int> quadroSemParidade = {quadro.begin(), quadro.end() - 1};
+
+    for(int i = 0; i < quadro.size() - 1; i++){
+        if(quadro[i] == 1){
+            count++;
+        }
+    }
+
+    int paridadeCalculada = count % 2;
+
+     if (paridadeRecebida != paridadeCalculada){
+         cout << "Erro de paridade." << endl;
+     }
+
+    return quadroSemParidade;
+};
+
+vector<int> CamadaEnlaceDadosReceptoraControleDeErroCRC(vector<int> quadro){
+    return quadro;
+};
+
+
+//Funcoes auxiliares
 
 bool compareVectors(vector<int> v1, vector<int> v2){
     bool isEqual = true;

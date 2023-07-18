@@ -93,7 +93,7 @@ void CamadaFisicaReceptora(vector<int> quadro){
             fluxoBrutoDeBits = CamadaFisicaReceptoraDecodBipolar(quadro);
             break;
     }
-    
+    fluxoBrutoDeBits = CamadaEnlaceReceptoraControleDeErro(fluxoBrutoDeBits);
     CamadaEnlanceDadosReceptora(fluxoBrutoDeBits);
 }
 
